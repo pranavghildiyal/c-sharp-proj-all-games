@@ -12,7 +12,7 @@ namespace pg_all_games
 {
     public partial class chessLeague : Form
     {
-		PathMethods pathMethods;
+        PathMethods pathMethods;
         Button[,] positionBlocks;
 
         int boardSize = 9;
@@ -117,9 +117,11 @@ namespace pg_all_games
                     case "E":
                         moveElephant(fromPosition, toPosition);
                         break;
-                    case "H":
+                    case "H": //2 1/2
+                        moveHorse(fromPosition, toPosition);
                         break;
                     case "C":
+                        moveCamel(fromPosition, toPosition);
                         break;
                     case "Q":
                         break;
@@ -129,6 +131,59 @@ namespace pg_all_games
 
                 resetMove1Vars();
             }
+        }
+
+        private void moveCamel(Position fromPosition, Position toPosition)
+        {
+            //preChecks
+            textBox1.Text = "moveH val : " + fromPosition.xPos;
+            Position[] path = pathMethods.getPathForCamel(fromPosition, toPosition, positionBlocks);
+
+            for (int ivar = 1; ivar < path.Length - 1; ivar++)
+            {
+                if (positionBlocks[path[ivar].xPos, path[ivar].yPos].Text != "")
+                {
+                    return;
+                }
+            }
+
+            Color foreColor = positionBlocks[fromPosition.xPos, fromPosition.yPos].ForeColor;
+            for (int ivar = 1; ivar < path.Length; ivar++)
+            {
+                textBox1.Text += ivar + ",";
+                positionBlocks[path[ivar - 1].xPos, path[ivar - 1].yPos].Text = "";
+                positionBlocks[path[ivar - 1].xPos, path[ivar - 1].yPos].ForeColor = Color.Blue;
+                positionBlocks[path[ivar - 1].xPos, path[ivar - 1].yPos].FlatAppearance.BorderColor = Color.Blue;
+
+                positionBlocks[path[ivar].xPos, path[ivar].yPos].Text = camelString;
+                positionBlocks[path[ivar].xPos, path[ivar].yPos].ForeColor = foreColor;
+                positionBlocks[path[ivar].xPos, path[ivar].yPos].FlatAppearance.BorderColor = foreColor;
+                //afterKillMethod(); TODO
+            }
+        }
+
+        private void moveHorse(Position fromPosition, Position toPosition)
+        {
+            //preChecks
+            textBox1.Text = "moveH val : " + fromPosition.xPos;
+            Position[] path = pathMethods.getPathForHorse(fromPosition, toPosition, positionBlocks);
+
+            Color foreColor = positionBlocks[fromPosition.xPos, fromPosition.yPos].ForeColor;
+            if ((positionBlocks[toPosition.xPos, toPosition.yPos].ForeColor == foreColor))
+            {
+                return;
+            }
+
+            //BlankText, ForeColor, Border
+            //text, ForeColor, Border
+
+            positionBlocks[path[0].xPos, path[0].yPos].Text = "";
+            positionBlocks[fromPosition.xPos, fromPosition.yPos].ForeColor = Color.Blue;
+            positionBlocks[fromPosition.xPos, fromPosition.yPos].FlatAppearance.BorderColor = Color.Blue;
+            positionBlocks[path[3].xPos, path[3].yPos].Text = horseString;
+            positionBlocks[path[3].xPos, path[3].yPos].ForeColor = foreColor;
+            positionBlocks[path[3].xPos, path[3].yPos].FlatAppearance.BorderColor = foreColor;
+            //afterKillMethod(); TODO
         }
 
         private void moveElephant(Position fromPosition, Position toPosition)
@@ -145,11 +200,10 @@ namespace pg_all_games
                 }
             }
 
-
-            if (positionBlocks[fromPosition.xPos, fromPosition.yPos].ForeColor == playerBColor)
-            { }
-            else if (positionBlocks[fromPosition.xPos, fromPosition.yPos].ForeColor == playerWColor)
-            { }
+            //if (positionBlocks[fromPosition.xPos, fromPosition.yPos].ForeColor == playerBColor)
+            //{ }
+            //else if (positionBlocks[fromPosition.xPos, fromPosition.yPos].ForeColor == playerWColor)
+            //{ }
 
             Color foreColor = positionBlocks[fromPosition.xPos, fromPosition.yPos].ForeColor;
             for (int ivar = 1; ivar < path.Length; ivar++)
@@ -172,14 +226,14 @@ namespace pg_all_games
             {
                 if (fromPosition.yPos != toPosition.yPos) //Kill (enemy)  moves
                 {
-                    if ((((fromY - toY) == 1) || ((fromY - toY) == -1)) && (positionBlocks[toX, toY].Text != "") && ((fromX - toX) == 1) && (positionBlocks[toX,toY].ForeColor != playerBColor))
+                    if ((((fromPosition.yPos - toPosition.yPos) == 1) || ((fromPosition.yPos - toPosition.yPos) == -1)) && (positionBlocks[toPosition.xPos, toPosition.yPos].Text != "") && ((fromPosition.xPos - toPosition.xPos) == 1) && (positionBlocks[toPosition.xPos,toPosition.yPos].ForeColor != playerBColor))
                     {
-                        textBox1.Text = "CanMove to X,Y " + toX + ", " + toY;
-                        positionBlocks[fromX, fromY].Text = "";
-                        positionBlocks[toX, toY].Text = text;
+                        textBox1.Text = "CanMove to X,Y " + toPosition.xPos + ", " + toPosition.yPos;
+                        positionBlocks[fromPosition.xPos, fromPosition.yPos].Text = "";
+                        positionBlocks[toPosition.xPos, toPosition.yPos].Text = soldierString;
                         //TODO add to eliminated;
-                        positionBlocks[toX, toY].ForeColor = playerBColor;
-                        positionBlocks[toX, toY].FlatAppearance.BorderColor = playerBColor;
+                        positionBlocks[toPosition.xPos, toPosition.yPos].ForeColor = playerBColor;
+                        positionBlocks[toPosition.xPos, toPosition.yPos].FlatAppearance.BorderColor = playerBColor;
                         return;
                     }
                     else
@@ -189,49 +243,49 @@ namespace pg_all_games
                     }
                 }
 
-                if (positionBlocks[toX, toY].Text != "") //disallow non-kill moves if position != empty
+                if (positionBlocks[toPosition.xPos, toPosition.yPos].Text != "") //disallow non-kill moves if position != empty
                 {
                     return;
                 }
 
-                if (fromX == 7) //moves - initial move can be 1 or 2 steps
+                if (fromPosition.xPos == 7) //moves - initial move can be 1 or 2 steps
                 {
-                    if (((fromX - toX) == 1) || ((fromX - toX) == 2))
+                    if (((fromPosition.xPos - toPosition.xPos) == 1) || ((fromPosition.xPos - toPosition.xPos) == 2))
                     {
-                        for (int ivar = fromX; ivar > toX; ivar--)
+                        for (int ivar = fromPosition.xPos; ivar > toPosition.xPos; ivar--)
                         {
                             textBox1.Text += ivar + ",";
-                            positionBlocks[ivar, fromY].Text = "";
-                            positionBlocks[ivar - 1, fromY].Text = text;
-                            positionBlocks[ivar - 1, fromY].ForeColor = playerBColor;
-                            positionBlocks[ivar - 1, fromY].FlatAppearance.BorderColor = playerBColor;
+                            positionBlocks[ivar, fromPosition.yPos].Text = "";
+                            positionBlocks[ivar - 1, fromPosition.yPos].Text = soldierString;
+                            positionBlocks[ivar - 1, fromPosition.yPos].ForeColor = playerBColor;
+                            positionBlocks[ivar - 1, fromPosition.yPos].FlatAppearance.BorderColor = playerBColor;
                         }
                     }
                 }
                 else //moves - non -initial move, canMove only if trying to move 1 block in same Colmn
                 {
-                    if (((fromX - toX) == 1))
+                    if (((fromPosition.xPos - toPosition.xPos) == 1))
                     {
-                        positionBlocks[fromX, fromY].Text = "";
-                        positionBlocks[fromX - 1, fromY].Text = text;
-                        positionBlocks[fromX - 1, fromY].ForeColor = playerBColor;
-                        positionBlocks[fromX - 1, fromY].FlatAppearance.BorderColor = playerBColor;
+                        positionBlocks[fromPosition.xPos, fromPosition.yPos].Text = "";
+                        positionBlocks[fromPosition.xPos - 1, fromPosition.yPos].Text = soldierString;
+                        positionBlocks[fromPosition.xPos - 1, fromPosition.yPos].ForeColor = playerBColor;
+                        positionBlocks[fromPosition.xPos - 1, fromPosition.yPos].FlatAppearance.BorderColor = playerBColor;
                     }
                 }
             }
-            else if (positionBlocks[fromX, fromY].ForeColor == playerWColor)
+            else if (positionBlocks[fromPosition.xPos, fromPosition.yPos].ForeColor == playerWColor)
             {
                 textBox1.Text = "White";
-                if (fromY != toY) //Kill (enemy)  moves
+                if (fromPosition.yPos != toPosition.yPos) //Kill (enemy)  moves
                 {
-                    if ((((fromY - toY) == 1) || ((fromY - toY) == -1)) && (positionBlocks[toX, toY].Text != "") && ((fromX - toX) == -1) && (positionBlocks[toX, toY].ForeColor != playerWColor))
+                    if ((((fromPosition.yPos - toPosition.yPos) == 1) || ((fromPosition.yPos - toPosition.yPos) == -1)) && (positionBlocks[toPosition.xPos, toPosition.yPos].Text != "") && ((fromPosition.xPos - toPosition.xPos) == -1) && (positionBlocks[toPosition.xPos, toPosition.yPos].ForeColor != playerWColor))
                     {
-                        textBox1.Text = "CanMove to X,Y " + toX + ", " + toY;
-                        positionBlocks[fromX, fromY].Text = "";
-                        positionBlocks[toX, toY].Text = text;
+                        textBox1.Text = "CanMove to X,Y " + toPosition.xPos + ", " + toPosition.yPos;
+                        positionBlocks[fromPosition.xPos, fromPosition.yPos].Text = "";
+                        positionBlocks[toPosition.xPos, toPosition.yPos].Text = soldierString;
                         //TODO add to eliminated;
-                        positionBlocks[toX, toY].ForeColor = playerWColor;
-                        positionBlocks[toX, toY].FlatAppearance.BorderColor = playerWColor;
+                        positionBlocks[toPosition.xPos, toPosition.yPos].ForeColor = playerWColor;
+                        positionBlocks[toPosition.xPos, toPosition.yPos].FlatAppearance.BorderColor = playerWColor;
                         return;
                     }
                     else
@@ -241,34 +295,34 @@ namespace pg_all_games
                     }
                 }
 
-                if (positionBlocks[toX, toY].Text != "") //disallow non-kill moves if position != empty
+                if (positionBlocks[toPosition.xPos, toPosition.yPos].Text != "") //disallow non-kill moves if position != empty
                 {
                     return;
                 }
 
-                if (fromX == 2) //moves - initial move can be 1 or 2 steps
+                if (fromPosition.xPos == 2) //moves - initial move can be 1 or 2 steps
                 {
-                    textBox1.Text += (fromX - toX).ToString();
-                    if (((fromX - toX) == -1) || ((fromX - toX) == -2))
+                    textBox1.Text += (fromPosition.xPos - toPosition.xPos).ToString();
+                    if (((fromPosition.xPos - toPosition.xPos) == -1) || ((fromPosition.xPos - toPosition.xPos) == -2))
                     {
-                        for (int ivar = fromX; ivar < toX; ivar++)
+                        for (int ivar = fromPosition.xPos; ivar < toPosition.xPos; ivar++)
                         {
                             textBox1.Text += ivar + ",";
-                            positionBlocks[ivar, fromY].Text = "";
-                            positionBlocks[ivar + 1, fromY].Text = text;
-                            positionBlocks[ivar + 1, fromY].ForeColor = playerWColor;
-                            positionBlocks[ivar + 1, fromY].FlatAppearance.BorderColor = playerWColor;
+                            positionBlocks[ivar, fromPosition.yPos].Text = "";
+                            positionBlocks[ivar + 1, fromPosition.yPos].Text = soldierString;
+                            positionBlocks[ivar + 1, fromPosition.yPos].ForeColor = playerWColor;
+                            positionBlocks[ivar + 1, fromPosition.yPos].FlatAppearance.BorderColor = playerWColor;
                         }
                     }
                 }
                 else //moves - non -initial move, canMove only if trying to move 1 block in same Colmn
                 {
-                    if (((fromX - toX) == -1))
+                    if (((fromPosition.xPos - toPosition.xPos) == -1))
                     {
-                        positionBlocks[fromX, fromY].Text = "";
-                        positionBlocks[fromX + 1, fromY].Text = text;
-                        positionBlocks[fromX + 1, fromY].ForeColor = playerWColor;
-                        positionBlocks[fromX + 1, fromY].FlatAppearance.BorderColor = playerWColor;
+                        positionBlocks[fromPosition.xPos, fromPosition.yPos].Text = "";
+                        positionBlocks[fromPosition.xPos + 1, fromPosition.yPos].Text = soldierString;
+                        positionBlocks[fromPosition.xPos + 1, fromPosition.yPos].ForeColor = playerWColor;
+                        positionBlocks[fromPosition.xPos + 1, fromPosition.yPos].FlatAppearance.BorderColor = playerWColor;
                     }
                 }
             }
@@ -312,15 +366,24 @@ namespace pg_all_games
 
     class PathMethods
     {
+        static Color playerBColor;
+        static Color playerWColor;
+
+        static PathMethods()
+        {
+            playerBColor = Color.Black;
+            playerWColor = Color.WhiteSmoke;
+        }
+
         public Position[] getPathForSoldier(Position fromPosition, Position toPosition, Button[,] positionBlocks)
         {
             Position[] path = null;
 
-            if (positionBlocks[fromPosition.xPos, fromPosition.yPos].ForeColor == playerBColor)
+            if (positionBlocks[fromPosition.xPos, fromPosition.yPos].ForeColor == PathMethods.playerBColor)
             {
                 if (fromPosition.yPos != toPosition.yPos) //Kill (enemy)  moves
                 {
-                    if ((((fromY - toY) == 1) || ((fromY - toY) == -1)) && (positionBlocks[toX, toY].Text != "") && ((fromX - toX) == 1) && (positionBlocks[toX,toY].ForeColor != playerBColor))
+                    if ((((fromPosition.yPos - toPosition.yPos) == 1) || ((fromPosition.yPos - toPosition.yPos) == -1)) && (positionBlocks[toPosition.xPos, toPosition.yPos].Text != "") && ((fromPosition.xPos - toPosition.xPos) == 1) && (positionBlocks[toPosition.xPos,toPosition.yPos].ForeColor != playerBColor))
                     {
                         path = new Position[2]{fromPosition, toPosition};
                     }
@@ -330,86 +393,68 @@ namespace pg_all_games
                     }
                 }
 
-                //if (positionBlocks[toX, toY].Text != "") //disallow non-kill moves if position != empty
+                //if (positionBlocks[toPosition.xPos, toPosition.yPos].Text != "") //disallow non-kill moves if position != empty
                 //{
                 //    return path;
                 //}
 
-                if (fromX == 7) //moves - initial move can be 1 or 2 steps
+                if (fromPosition.xPos == 7) //moves - initial move can be 1 or 2 steps
                 {
-                    if (((fromX - toX) == 1) || ((fromX - toX) == 2))
+                    int posDiff = fromPosition.xPos - toPosition.xPos;
+                    if (((posDiff) == 1) || ((posDiff) == 2))
                     {
-                        for (int ivar = fromX; ivar > toX; ivar--)
+                        path = new Position[posDiff + 1];
+                        for (int ivar = fromPosition.xPos, jvar = 0; ivar >= toPosition.xPos; ivar--,jvar++)
                         {
-                            textBox1.Text += ivar + ",";
-                            positionBlocks[ivar, fromY].Text = "";
-                            positionBlocks[ivar - 1, fromY].Text = text;
-                            positionBlocks[ivar - 1, fromY].ForeColor = playerBColor;
-                            positionBlocks[ivar - 1, fromY].FlatAppearance.BorderColor = playerBColor;
+                            path[jvar] = new Position(ivar, fromPosition.yPos);
                         }
                     }
                 }
                 else //moves - non -initial move, canMove only if trying to move 1 block in same Colmn
                 {
-                    if (((fromX - toX) == 1))
+                    if (((fromPosition.xPos - toPosition.xPos) == 1))
                     {
-                        positionBlocks[fromX, fromY].Text = "";
-                        positionBlocks[fromX - 1, fromY].Text = text;
-                        positionBlocks[fromX - 1, fromY].ForeColor = playerBColor;
-                        positionBlocks[fromX - 1, fromY].FlatAppearance.BorderColor = playerBColor;
+                        path = new Position[2] { fromPosition, toPosition };
                     }
                 }
             }
-            else if (positionBlocks[fromX, fromY].ForeColor == playerWColor)
+            else if (positionBlocks[fromPosition.xPos, fromPosition.yPos].ForeColor == playerWColor)
             {
-                textBox1.Text = "White";
-                if (fromY != toY) //Kill (enemy)  moves
+                if (fromPosition.yPos != toPosition.yPos) //Kill (enemy)  moves
                 {
-                    if ((((fromY - toY) == 1) || ((fromY - toY) == -1)) && (positionBlocks[toX, toY].Text != "") && ((fromX - toX) == -1) && (positionBlocks[toX, toY].ForeColor != playerWColor))
+                    if ((((fromPosition.yPos - toPosition.yPos) == 1) || ((fromPosition.yPos - toPosition.yPos) == -1)) && (positionBlocks[toPosition.xPos, toPosition.yPos].Text != "") && ((fromPosition.xPos - toPosition.xPos) == -1) && (positionBlocks[toPosition.xPos, toPosition.yPos].ForeColor != playerWColor))
                     {
-                        textBox1.Text = "CanMove to X,Y " + toX + ", " + toY;
-                        positionBlocks[fromX, fromY].Text = "";
-                        positionBlocks[toX, toY].Text = text;
-                        //TODO add to eliminated;
-                        positionBlocks[toX, toY].ForeColor = playerWColor;
-                        positionBlocks[toX, toY].FlatAppearance.BorderColor = playerWColor;
-                        return;
+                        path = new Position[2] { fromPosition, toPosition };
+                        return path;
                     }
                     else
                     {
-                        textBox1.Text = "return";
-                        return;
+                        return path;
                     }
                 }
 
-                if (positionBlocks[toX, toY].Text != "") //disallow non-kill moves if position != empty
+                if (positionBlocks[toPosition.xPos, toPosition.yPos].Text != "") //disallow non-kill moves if position != empty
                 {
-                    return;
+                    return path;
                 }
 
-                if (fromX == 2) //moves - initial move can be 1 or 2 steps
+                if (fromPosition.xPos == 2) //moves - initial move can be 1 or 2 steps
                 {
-                    textBox1.Text += (fromX - toX).ToString();
-                    if (((fromX - toX) == -1) || ((fromX - toX) == -2))
+                    int posDiff = fromPosition.xPos - toPosition.xPos;
+                    if (((posDiff) == -1) || ((posDiff) == -2))
                     {
-                        for (int ivar = fromX; ivar < toX; ivar++)
+                        path = new Position[posDiff + 1];
+                        for (int ivar = fromPosition.xPos, jvar = 0; ivar <= toPosition.xPos; ivar++, jvar++)
                         {
-                            textBox1.Text += ivar + ",";
-                            positionBlocks[ivar, fromY].Text = "";
-                            positionBlocks[ivar + 1, fromY].Text = text;
-                            positionBlocks[ivar + 1, fromY].ForeColor = playerWColor;
-                            positionBlocks[ivar + 1, fromY].FlatAppearance.BorderColor = playerWColor;
+                            path[ivar] = new Position(ivar, fromPosition.yPos);
                         }
                     }
                 }
                 else //moves - non -initial move, canMove only if trying to move 1 block in same Colmn
                 {
-                    if (((fromX - toX) == -1))
+                    if (((fromPosition.xPos - toPosition.xPos) == -1))
                     {
-                        positionBlocks[fromX, fromY].Text = "";
-                        positionBlocks[fromX + 1, fromY].Text = text;
-                        positionBlocks[fromX + 1, fromY].ForeColor = playerWColor;
-                        positionBlocks[fromX + 1, fromY].FlatAppearance.BorderColor = playerWColor;
+                        path = new Position[2] { fromPosition, toPosition };
                     }
                 }
             }
@@ -465,13 +510,117 @@ namespace pg_all_games
             return path;
         }
 
-        public Position[] getPathForHorse(Position fromPosition, Position toPosition)
+        public Position[] getPathForHorse(Position fromPosition, Position toPosition, Button[,] positionBlocks)
         {
-            return null;
+            Position[] path = new Position[4];
+            if(((fromPosition.xPos - toPosition.xPos) == 2) || ((fromPosition.xPos - toPosition.xPos) == -2) )
+            {
+                 if(((fromPosition.yPos - toPosition.yPos) == 1) || ((fromPosition.yPos - toPosition.yPos) == -1))
+                 {
+                     if (((fromPosition.xPos - toPosition.xPos) == 2))
+                     {
+                         for (int ivar = fromPosition.xPos, jvar = 0; ivar >= toPosition.xPos; ivar--, jvar++)
+                         {
+                             path[jvar] = new Position(ivar, fromPosition.yPos);
+                         }
+                         path[3] = toPosition;
+                     }
+                     else if (((fromPosition.xPos - toPosition.xPos) == -2))
+                     {
+                         for (int ivar = fromPosition.xPos, jvar = 0; ivar <= toPosition.xPos; ivar++, jvar++)
+                         {
+                             path[jvar] = new Position(ivar, fromPosition.yPos);
+                         }
+                         path[3] = toPosition;
+                     }
+                 }
+            }
+            else if (((fromPosition.xPos - toPosition.xPos) == 1) || ((fromPosition.xPos - toPosition.xPos) == -1))
+            {
+                if (((fromPosition.yPos - toPosition.yPos) == 2) || ((fromPosition.yPos - toPosition.yPos) == -2))
+                {
+                    if (((fromPosition.yPos - toPosition.yPos) == 2))
+                    {
+                        for (int ivar = fromPosition.yPos, jvar = 0; ivar >= toPosition.yPos; ivar--, jvar++)
+                        {
+                            path[jvar] = new Position(fromPosition.xPos, ivar);
+                        }
+                        path[3] = toPosition;
+                    }
+                    else if (((fromPosition.yPos - toPosition.yPos) == -2))
+                    {
+                        for (int ivar = fromPosition.yPos, jvar = 0; ivar <= toPosition.yPos; ivar++, jvar++)
+                        {
+                            path[jvar] = new Position(fromPosition.xPos, ivar);
+                        }
+                        path[3] = toPosition;
+                    }
+                }
+            }
+            return path;
         }
-        public Position[] getPathForCamel(Position fromPosition, Position toPosition)
+
+        public Position[] getPathForCamel(Position fromPosition, Position toPosition, Button[,] positionBlocks)
         {
-            return null;
+            Position[] path = null;
+            int xDiff = fromPosition.xPos - toPosition.xPos;
+            int yDiff = toPosition.xPos - toPosition.yPos;
+
+            if (xDiff < 0)
+            {
+                xDiff = -1 * xDiff;
+            }
+
+            if (yDiff < 0)
+            {
+                yDiff = -1 * yDiff;
+            }
+
+            if (!(xDiff == yDiff))
+            {
+                return path;
+            }
+
+            if (fromPosition.xPos > toPosition.xPos) //Up
+            {
+                if (fromPosition.yPos > toPosition.yPos) //right
+                {
+                    path = new Position[xDiff];
+                    for (int ivar = fromPosition.xPos, jvar = 0, kvar = fromPosition.yPos; ivar >= toPosition.xPos; ivar--, jvar++, kvar--)
+                    {
+                        path[jvar] = new Position(ivar, kvar);
+                    }
+                }
+                else if (fromPosition.yPos < toPosition.yPos) //left
+                {
+                    path = new Position[xDiff];
+                    for (int ivar = fromPosition.xPos, jvar = 0, kvar = fromPosition.yPos; ivar >= toPosition.xPos; ivar--, jvar++, kvar++)
+                    {
+                        path[jvar] = new Position(ivar, kvar);
+                    }
+                }
+            }
+            else if (fromPosition.xPos < toPosition.xPos) //down
+            {
+                if (fromPosition.yPos > toPosition.yPos) //right
+                {
+                    path = new Position[xDiff];
+                    for (int ivar = fromPosition.xPos, jvar = 0, kvar = fromPosition.yPos; ivar >= toPosition.xPos; ivar++, jvar++, kvar--)
+                    {
+                        path[jvar] = new Position(ivar, kvar);
+                    }
+                }
+                else if (fromPosition.yPos < toPosition.yPos) //left
+                {
+                    path = new Position[xDiff];
+                    for (int ivar = fromPosition.xPos, jvar = 0, kvar = fromPosition.yPos; ivar >= toPosition.xPos; ivar++, jvar++, kvar++)
+                    {
+                        path[jvar] = new Position(ivar, kvar);
+                    }
+                }
+            }
+
+            return path;
         }
         public Position[] getPathForQueen(Position fromPosition, Position toPosition)
         {
