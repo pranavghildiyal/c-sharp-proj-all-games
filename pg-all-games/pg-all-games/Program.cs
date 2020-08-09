@@ -16,7 +16,7 @@ namespace pg_all_games
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new chessLeague());
+            Application.Run(new snakeLadder());
         }
     }
 }
